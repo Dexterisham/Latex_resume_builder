@@ -1,0 +1,113 @@
+{
+  "personal_info": {
+    "name": "MohammeddIsham",
+    "email": "ishammohammedper10@gmail.com",
+    "phone": "8088653147",
+    "linkedin": "https://www.linkedin.com/in/mohammed-isham-6b6274208",
+    "github": "https://github.com/Dexterisham"
+  },
+  "skills": [
+    "React",
+    "python",
+    "c++",
+    "c#",
+    "unity",
+    "godot",
+    "java",
+    "javascript"
+  ],
+  "experience": [],
+  "projects": [
+    {
+      "id": "987747538",
+      "name": "AI_QnA",
+      "tech": "HTML",
+      "details": "Check out AI_QnA on GitHub."
+    },
+    {
+      "id": "1040895765",
+      "name": "Ai_study-planner",
+      "tech": "TypeScript",
+      "details": "its analyzes the zip files and gives a good tutoring"
+    },
+    {
+      "id": "969103994",
+      "name": "Branch_LLM",
+      "tech": "JavaScript",
+      "details": "Check out Branch_LLM on GitHub."
+    },
+    {
+      "id": "1112757429",
+      "name": "Calendar_app",
+      "tech": "TypeScript",
+      "details": "A simple calendar app nothings new nothings interesting ,just a Calendar"
+    },
+    {
+      "id": "913181176",
+      "name": "Dexterisham",
+      "tech": "Unknown",
+      "details": "Check out Dexterisham on GitHub."
+    },
+    {
+      "id": "1057301030",
+      "name": "File-Organizer",
+      "tech": "Python",
+      "details": "A simple yet powerful Python script to automatically organize files in any folder into categorized subfolders (e.g., Images, Documents, Videos, Music, etc.). Perfect for keeping your Downloads or any messy folder tidy with just a click!"
+    },
+    {
+      "id": "1041826552",
+      "name": "infinite-wiki",
+      "tech": "TypeScript",
+      "details": "click drag search for anything,its infinite"
+    },
+    {
+      "id": "1099758246",
+      "name": "Isham_Portfolio",
+      "tech": "JavaScript",
+      "details": "My personal portfolio website"
+    },
+    {
+      "id": "1102220293",
+      "name": "LearningMLops",
+      "tech": "Jupyter Notebook",
+      "details": "Check out LearningMLops on GitHub."
+    },
+    {
+      "id": "1054357370",
+      "name": "peer2peer_Sharing",
+      "tech": "TypeScript",
+      "details": "Check out peer2peer_Sharing on GitHub."
+    },
+    {
+      "id": "1008297014",
+      "name": "Project_proCast",
+      "tech": "Unknown",
+      "details": "A simple Awareness project "
+    },
+    {
+      "id": "1041399870",
+      "name": "Resume_builder",
+      "tech": "TypeScript",
+      "details": "Builds resume "
+    },
+    {
+      "id": "794868576",
+      "name": "Site_Sentinel",
+      "tech": "JavaScript",
+      "details": "This Project for the edge extension allows the Users to avoid unlimited scrolling on the social media in PC"
+    },
+    {
+      "id": "747076513",
+      "name": "TimerApp",
+      "tech": "Kotlin",
+      "details": "Simple timer app in the android"
+    }
+  ],
+  "achievements_story": [
+    {
+      "id": "1765620309667",
+      "title": "",
+      "story": ""
+    }
+  ]
+}

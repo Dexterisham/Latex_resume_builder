@@ -1,0 +1,17 @@
+# Dependencies
+**/node_modules
+
+# Environment Variables (CRITICAL)
+**/.env
+
+# Build Output
+frontend/dist
+backend/data/resumes/*
+backend/data/history.json
+
+# Logs
+**/*.log
+
+# OS
+.DS_Store
+Thumbs.db

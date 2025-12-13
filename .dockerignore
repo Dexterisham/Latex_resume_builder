@@ -1,0 +1,9 @@
+# Ignore secrets and dependencies
+**/node_modules
+**/.env
+**/.git
+backend/data/resumes/*
+backend/data/history.json
+# Keep temp files out
+**/*.log
+**/*.tmp

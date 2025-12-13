@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  resume-builder:
+    build: .
+    container_name: pdf_resume_builder
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    volumes:
+      # Persist data (profiles, templates, history, pdfs) locally
+      - ./backend/data:/app/backend/data

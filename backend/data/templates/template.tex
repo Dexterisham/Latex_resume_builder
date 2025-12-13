@@ -1,0 +1,232 @@
+%-----------------------------------------------------------------------------------------------------------------------------------------------%
+%	The MIT License (MIT)
+%
+%	Copyright (c) 2021 Jitin Nair
+%
+%	Permission is hereby granted, free of charge, to any person obtaining a copy
+%	of this software and associated documentation files (the "Software"), to deal
+%	in the Software without restriction, including without limitation the rights
+%	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+%	copies of the Software, and to permit persons to whom the Software is
+%	furnished to do so, subject to the following conditions:
+%
+%	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+%	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+%	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+%	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+%	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+%	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+%	THE SOFTWARE.
+%
+%-----------------------------------------------------------------------------------------------------------------------------------------------%
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT DEFINITION
+%----------------------------------------------------------------------------------------
+
+% article class because we want to fully customize the page and not use a cv template
+\documentclass[a4paper,12pt]{article}
+
+%----------------------------------------------------------------------------------------
+%	FONT
+%----------------------------------------------------------------------------------------
+
+% % fontspec allows you to use TTF/OTF fonts directly
+% \usepackage{fontspec}
+% \defaultfontfeatures{Ligatures=TeX}
+
+% % modified for ShareLaTeX use
+% \setmainfont[
+% SmallCapsFont = Fontin-SmallCaps.otf,
+% BoldFont = Fontin-Bold.otf,
+% ItalicFont = Fontin-Italic.otf
+% ]
+% {Fontin.otf}
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES
+%----------------------------------------------------------------------------------------
+\usepackage{url}
+\usepackage{parskip}
+
+%other packages for formatting
+\RequirePackage{color}
+\RequirePackage{graphicx}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[scale=0.92, top=0.7cm, bottom=0.7cm, left=1cm, right=1cm]{geometry}
+
+%tabularx environment
+\usepackage{tabularx}
+
+%for lists within experience section
+\usepackage{enumitem}
+
+% centered version of 'X' col. type
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+%to prevent spillover of tabular into next pages
+\usepackage{supertabular}
+\usepackage{tabularx}
+\newlength{\fullcollw}
+\setlength{\fullcollw}{0.47\textwidth}
+
+%custom \section
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{multirow}
+
+%CV Sections inspired by:
+%http://stefano.italians.nl/archives/26
+\titleformat{\section}{\Large\scshape\raggedright}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{6pt}{6pt}
+
+%for publications
+\usepackage[style=authoryear,sorting=ynt, maxbibnames=2]{biblatex}
+
+%Setup hyperref package, and colours for links
+\usepackage[unicode, draft=false]{hyperref}
+\definecolor{linkcolour}{rgb}{0,0.2,0.6}
+\hypersetup{colorlinks,breaklinks,urlcolor=linkcolour,linkcolor=linkcolour}
+\addbibresource{citations.bib}
+\setlength\bibitemsep{1em}
+
+%for social icons
+\usepackage{fontawesome5}
+
+%debug page outer frames
+%\usepackage{showframe}
+
+% job listing environments
+\newenvironment{jobshort}[2]
+    {
+    \begin{tabularx}{\linewidth}{@{}l X r@{}}
+    \textbf{#1} & \hfill &  #2 \\[3.75pt]
+    \end{tabularx}
+    }
+    {
+    }
+
+\newenvironment{joblong}[2]
+    {
+    \begin{tabularx}{\linewidth}{@{}l X r@{}}
+    \textbf{#1} & \hfill &  #2 \\[3.75pt]
+    \end{tabularx}
+    \begin{minipage}[t]{\linewidth}
+    \begin{itemize}[nosep,after=\strut, leftmargin=1em, itemsep=3pt,label=--]
+    }
+    {
+    \end{itemize}
+    \end{minipage}
+    }
+
+%----------------------------------------------------------------------------------------
+%	BEGIN DOCUMENT
+%----------------------------------------------------------------------------------------
+\begin{document}
+
+% non-numbered pages
+\pagestyle{empty}
+
+%----------------------------------------------------------------------------------------
+%	TITLE
+%----------------------------------------------------------------------------------------
+
+\begin{tabularx}{\linewidth}{@{} C @{}}
+\Huge{Mohammed Isham} \\[5pt]
+\href{https://github.com/Dexterisham}{\raisebox{-0.05\height}\faGithub\ Github} \ $|$ \
+\href{https://www.linkedin.com/in/mohammed-isham-6b6274208}{\raisebox{-0.05\height}\faLinkedin\ LinkedIn} \ $|$ \
+\href{mailto:ishammohammedper10@gmail.com}{\raisebox{-0.05\height}\faEnvelope \ ishammohammedper10@gmail.com} \ $|$ \
+\href{tel:+918088653147}{\raisebox{-0.05\height}\faMobile \ +91 8088653147} \\
+\end{tabularx}
+
+%----------------------------------------------------------------------------------------
+% Objective
+%----------------------------------------------------------------------------------------
+\section{Objective}
+Aspiring Cloud and AI Engineer with hands-on experience in Python automation, cloud deployment (Vercel, Azure), and CI/CD pipelines. Passionate about building scalable cloud infrastructure and integrating AI solutions to automate processes and enhance decision-making. Eager to contribute to innovative projects and collaborate with cross-functional teams to optimize cloud performance and security.
+
+%----------------------------------------------------------------------------------------
+%	WORK EXPERIENCE
+%----------------------------------------------------------------------------------------
+\section{Work Experience}
+
+\begin{joblong}{Intern/Developer - Abhimo Technologies}{Dec 2024 - Feb 2025}
+\item Developed mock UI for corporate bank applications using React, modernizing the user interface and improving user experience
+\item Assisted in database migration from Oracle SQL to MySQL, ensuring data integrity and optimizing query performance
+\item Collaborated with the development team to implement responsive design patterns for banking applications
+\item Gained exposure to cloud deployment workflows and CI/CD pipelines, contributing to automated deployment processes
+\end{joblong}
+
+%----------------------------------------------------------------------------------------
+%	EDUCATION
+%----------------------------------------------------------------------------------------
+\section{Education}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+Feb 2024 - Oct 2025 & Master of Computer Application at \textbf{Mangalore Institute of Technology and Engineering}, Badaga Mijar \\
+& \small{\textbf{CGPA: 8.07}} \\
+& \small{\textit{Relevant Coursework: Cloud Computing, AI/ML, Python Programming}} \\
+June 2020 - Aug 2023 & Bachelors of Computer Application at \textbf{Vijaya College}, Mulki \\
+& \small{\textbf{CGPA: 7.16}} \\
+& \small{\textit{Relevant Coursework: Data Structures, Algorithms, Database Management}} \\
+\end{tabularx}
+
+%----------------------------------------------------------------------------------------
+%	SKILLS
+%----------------------------------------------------------------------------------------
+\section{Skills}
+\begin{tabularx}{\linewidth}{@{}l X@{}}
+Programming Languages & Python, JavaScript, C, C++, Java \\
+Cloud Platforms & Azure (Workshop), Vercel (Deployment) \\
+DevOps \& CI/CD & Git, Docker, CI/CD Pipelines \\
+AI/ML & Automation Scripts, Agentic AI (Exploratory) \\
+Frameworks \& Tools & Unity, Godot, Android Studio, Hadoop \\
+\end{tabularx}
+
+%----------------------------------------------------------------------------------------
+%	PROJECTS
+%----------------------------------------------------------------------------------------
+\section{Projects}
+
+\begin{tabularx}{\linewidth}{@{}l r@{}}
+\textbf{Branch LLM} & \hfill \href{https://github.com/Dexterisham/Branch_LLM}{\faGithub} ~ \href{https://branch-llm-refined-git-localmaster2-dexterishams-projects.vercel.app/}{\faLink} \\[3.75pt]
+\multicolumn{2}{@{}X@{}}{
+\begin{itemize}[nosep,after=\strut, leftmargin=1em, itemsep=3pt,label=--]
+\item Developed a local branching memory interface for exploratory AI conversations, enabling users to fork conversation branches while preserving context
+\item \textbf{Research Focus:} Explored context compression techniques to optimize token usage in branched conversations
+\item \textbf{Tech Stack:} Python, Vercel (Deployment), CI/CD Pipelines
+\end{itemize}} \\
+\end{tabularx}
+
+\vspace{3pt}
+
+\begin{tabularx}{\linewidth}{@{}l r@{}}
+\textbf{File Organizer} & \hfill \href{https://github.com/Dexterisham/File-Organizer}{\faGithub} \\[3.75pt]
+\multicolumn{2}{@{}X@{}}{
+\begin{itemize}[nosep,after=\strut, leftmargin=1em, itemsep=3pt,label=--]
+\item Designed a Python-based tool to automatically organize and categorize files in a directory based on file type, size, or custom rules
+\item Implemented features to reduce manual file management effort, improving productivity and directory cleanliness
+\item \textbf{Tech Stack:} Python, Automation Scripts
+\end{itemize}} \\
+\end{tabularx}
+
+\vspace{3pt}
+
+\begin{tabularx}{\linewidth}{@{}l r@{}}
+\textbf{SiteSentinel} & \hfill \href{https://github.com/Dexterisham/Site_Sentinel}{\faGithub} \\[3.75pt]
+\multicolumn{2}{@{}X@{}}{
+\begin{itemize}[nosep,after=\strut, leftmargin=1em, itemsep=3pt,label=--]
+\item Developed a browser extension to retrieve and save URLs of visited pages
+\item Implemented features to enhance user experience, such as a timer and tab blurring
+\item \textbf{Tech Stack:} JavaScript, Browser APIs
+\end{itemize}} \\
+\end{tabularx}
+
+%----------------------------------------------------------------------------------------
+%	WORKSHOPS AND CERTIFICATIONS
+%----------------------------------------------------------------------------------------
+
+
+\vfill
+% \center{\footnotesize Last updated: \today}
+
+\end{document}
