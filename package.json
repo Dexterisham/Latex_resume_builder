@@ -1,0 +1,9 @@
+{
+  "name": "resume-builder-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@google/genai": "^1.40.0",
+    "dotenv": "^16.4.0"
+  }
+}
