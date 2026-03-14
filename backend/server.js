@@ -7,13 +7,24 @@ const { generateResumeContent, getAvailableModels } = require('./services/llm');
 const { compilePdf } = require('./services/pdf');
 
 const app = express();
-const PORT = Number(process.env.PORT) || 8000;
+const PORT = process.env.PORT || 8000;
 
-const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
-    : null;
+// Update CORS to be more permissive for production or use environment variable
+const allowedOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',') 
+    : ['http://localhost:5173', 'http://localhost:8000'];
 
-app.use(cors(allowedOrigins ? { origin: allowedOrigins } : undefined));
+app.use(cors({
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (process.env.NODE_ENV === 'production') {
+            return callback(null, true); // Permissive in prod, or specify Netlify URL here
+        }
+        return callback(null, true);
+    },
+    credentials: true
+}));
 app.use(express.json());
 
 // Paths
@@ -131,7 +142,26 @@ app.post('/profile', (req, res) => {
 app.get('/templates', (req, res) => {
     try {
         const files = fs.readdirSync(TEMPLATES_DIR).filter(f => f.endsWith('.tex'));
-        res.json({ templates: files });
+        const previewMap = {
+            'classic.tex': '/previews/classic.png',
+            'modern.tex': '/previews/modern.png',
+            'minimalistic.tex': '/previews/minimal.png',
+            'two_column.tex': '/previews/two_column.png',
+            'sidebar.tex': '/previews/sidebar.png',
+            'sidebarleft.tex': '/previews/sidebarleft.png',
+            'rows.tex': '/previews/rows.png',
+            'infographics.tex': '/previews/infographics.png',
+            'infographics2_en.tex': '/previews/infographics2_en.png',
+            'infographics2.tex': '/previews/infographics2_en.png'
+        };
+
+        const templateData = files.map(filename => ({
+            id: filename,
+            name: filename.replace('.tex', '').replace(/_/g, ' ').toUpperCase(),
+            preview: previewMap[filename] || null
+        }));
+
+        res.json({ templates: templateData });
     } catch (e) {
         res.status(500).json({ detail: "Error listing templates" });
     }

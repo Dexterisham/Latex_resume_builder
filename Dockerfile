@@ -1,18 +1,7 @@
-# Multi-stage Dockerfile
-
-# Stage 1: Build React Frontend
-FROM node:18-alpine as client-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ ./
-RUN npm run build
-
-# Stage 2: Production Server (Node + TeXLive)
+# Optimized Dockerfile for Backend-only (Render)
 FROM node:18-bullseye-slim
 
-# 1. Install TeXLive (Full LaTeX distribution for compiling resumes)
-# We use apt-get to install a solid subset of TeXLive to keep size managed but functional.
+# 1. Install TeXLive (Minimized for size but functional)
 RUN apt-get update && apt-get install -y \
     texlive-latex-base \
     texlive-latex-extra \
@@ -24,19 +13,16 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# 2. Setup Backend
-COPY backend/package*.json ./backend/
-WORKDIR /app/backend
-RUN npm install
+# 2. Setup Backend Dependencies
+COPY backend/package*.json ./
+RUN npm install --production
+
+# 3. Copy Backend Source (includes data/templates we just populated)
 COPY backend/ ./
 
-# 3. Copy Built Frontend from Stage 1
-# server.js is configured to serve '../frontend/dist'
-COPY --from=client-build /app/frontend/dist ../frontend/dist
+# 4. Expose dynamic Port (Render uses 10000 or the $PORT env)
+ENV PORT=10000
+EXPOSE 10000
 
-# 4. Expose Port
-ENV PORT=8000
-EXPOSE 8000
-
-# 5. Start Application
+# 5. Start Backend Server
 CMD ["node", "server.js"]

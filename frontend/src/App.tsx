@@ -21,6 +21,12 @@ interface Story {
     story: string;
 }
 
+interface Template {
+    id: string;
+    name: string;
+    preview: string | null;
+}
+
 interface ProfileData {
     personal_info: {
         name: string;
@@ -51,8 +57,9 @@ function App() {
     const [generationStatus, setGenerationStatus] = useState<'idle' | 'loading' | 'success' | 'partial_success' | 'error'>('idle');
     const [generatedFile, setGeneratedFile] = useState('');
     const [generatedTex, setGeneratedTex] = useState('');
-    const [templates, setTemplates] = useState<string[]>([]);
+    const [templates, setTemplates] = useState<Template[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState('');
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
     const [logs, setLogs] = useState<string[]>([]);
@@ -114,7 +121,7 @@ function App() {
             if (res.ok) {
                 const data = await res.json();
                 setTemplates(data.templates);
-                if (data.templates.length > 0) setSelectedTemplate(data.templates[0]);
+                if (data.templates.length > 0) setSelectedTemplate(data.templates[0].id);
             }
         } catch (e) {
             console.error("Failed to fetch templates", e);
@@ -489,11 +496,28 @@ function App() {
                                         <label className="block text-lg font-bold mb-2">Resume Name (Optional)</label>
                                         <input type="text" className="w-full neo-input p-3 font-medium" placeholder="e.g. Frontend Dev - Google" value={customName} onChange={(e) => setCustomName(e.target.value)} />
                                     </div>
-                                    <div>
-                                        <label htmlFor="templateSelect" className="block text-lg font-bold mb-2">Select Template</label>
-                                        <select id="templateSelect" className="w-full neo-input p-3 font-medium bg-white cursor-pointer" value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)}>
-                                            {templates.map(t => <option key={t} value={t}>{t}</option>)}
-                                        </select>
+                                    <div className="relative">
+                                        <label className="block text-lg font-bold mb-2">Select Template</label>
+                                        <div className="flex items-center gap-4">
+                                            <button 
+                                                onClick={() => setIsTemplateModalOpen(true)}
+                                                className="neo-btn bg-neo-yellow px-6 py-3 font-bold uppercase w-1/2 flex items-center justify-between shadow-neo hover:shadow-neo-brutal"
+                                            >
+                                                <span>{templates.find(t => t.id === selectedTemplate)?.name || 'Select Template'}</span>
+                                                <span className="text-xl">➔</span>
+                                            </button>
+                                            
+                                            {/* Preview Thumbnail for currently selected */}
+                                            {selectedTemplate && templates.find(t => t.id === selectedTemplate)?.preview && (
+                                                <div className="w-16 h-20 border-2 border-neo-border bg-white shadow-neo">
+                                                    <img 
+                                                        src={templates.find(t => t.id === selectedTemplate)?.preview || ''} 
+                                                        alt="Selected Template" 
+                                                        className="w-full h-full object-cover object-top"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <div>
                                         <label htmlFor="modelSelect" className="block text-lg font-bold mb-2">AI Model</label>
@@ -548,6 +572,74 @@ function App() {
                                         <textarea readOnly title="LaTeX Source Code" className="w-full h-32 neo-input p-3 text-xs font-mono bg-gray-50" value={generatedTex} />
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                {/* Template Selection Modal */}
+                {isTemplateModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                        <div className="neo-card bg-white w-full max-w-6xl max-h-[90vh] flex flex-col relative overflow-hidden">
+                            {/* Modal Header */}
+                            <div className="flex justify-between items-center p-6 border-b-4 border-neo-border bg-neo-yellow">
+                                <h2 className="text-3xl font-black uppercase tracking-tight">Select a Template</h2>
+                                <button 
+                                    onClick={() => setIsTemplateModalOpen(false)}
+                                    className="w-10 h-10 flex items-center justify-center bg-neo-pink border-4 border-neo-border shadow-neo font-black text-xl hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+                                >
+                                    X
+                                </button>
+                            </div>
+                            
+                            {/* Modal Body (Scrollable Grid) */}
+                            <div className="p-6 md:p-8 overflow-y-auto bg-neo-bg flex-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                                    {templates.map(t => (
+                                        <div 
+                                            key={t.id} 
+                                            onClick={() => {
+                                                setSelectedTemplate(t.id);
+                                                setIsTemplateModalOpen(false); // Auto close on select
+                                            }}
+                                            className={`relative flex flex-col bg-white border-4 cursor-pointer transition-all group ${selectedTemplate === t.id ? 'border-neo-pink shadow-neo-focus translate-y-1 translate-x-1 outline outline-4 outline-neo-pink' : 'border-neo-border shadow-neo-brutal hover:shadow-neo hover:translate-y-1 hover:translate-x-1'}`}
+                                        >
+                                            {/* Image Container with hover zoom effect */}
+                                            <div className="w-full aspect-[1/1.4] overflow-hidden border-b-4 border-neo-border relative bg-gray-50">
+                                                {t.preview ? (
+                                                    <>
+                                                        <img 
+                                                            src={t.preview} 
+                                                            alt={t.name} 
+                                                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" 
+                                                        />
+                                                        {/* "SELECT" Overlay on hover */}
+                                                        <div className="absolute inset-0 bg-neo-blue/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <span className="bg-white border-4 border-neo-border px-6 py-2 font-black uppercase text-xl shadow-neo transform -rotate-2">Select</span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-4">
+                                                        <span className="text-4xl mb-2">📄</span>
+                                                        <span className="font-bold uppercase text-sm text-center">No Preview<br/>Available</span>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Selected Badge */}
+                                                {selectedTemplate === t.id && (
+                                                    <div className="absolute top-2 right-2 bg-neo-green text-white font-black text-xs px-2 py-1 border-2 border-neo-border shadow-neo z-10">
+                                                        SELECTED
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {/* Details Container */}
+                                            <div className={`p-4 text-center ${selectedTemplate === t.id ? 'bg-neo-pink text-white' : 'bg-white text-black'}`}>
+                                                <h3 className="font-black text-lg uppercase truncate">{t.name}</h3>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
