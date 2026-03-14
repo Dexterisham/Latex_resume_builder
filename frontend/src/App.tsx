@@ -80,12 +80,16 @@ function App() {
             const res = await fetch(`${API_URL}/models`);
             if (res.ok) {
                 const data = await res.json();
-                setAvailableModels(data.models);
-                if (data.models.length > 0) {
-                    // Keep default if it exists in list, otherwise take first
-                    if (!data.models.includes(selectedModel)) {
-                        setSelectedModel(data.models[0]);
+                if (data && Array.isArray(data.models)) {
+                    setAvailableModels(data.models);
+                    if (data.models.length > 0) {
+                        // Keep default if it exists in list, otherwise take first
+                        if (!data.models.includes(selectedModel)) {
+                            setSelectedModel(data.models[0]);
+                        }
                     }
+                } else if (Array.isArray(data)) {
+                    setAvailableModels(data);
                 }
             }
         } catch (e) {
@@ -120,8 +124,10 @@ function App() {
             const res = await fetch(`${API_URL}/templates`);
             if (res.ok) {
                 const data = await res.json();
-                setTemplates(data.templates);
-                if (data.templates.length > 0) setSelectedTemplate(data.templates[0].id);
+                if (data && data.templates) {
+                    setTemplates(data.templates);
+                    if (data.templates.length > 0) setSelectedTemplate(data.templates[0].id);
+                }
             }
         } catch (e) {
             console.error("Failed to fetch templates", e);
@@ -133,7 +139,11 @@ function App() {
             const res = await fetch(`${API_URL}/history`);
             if (res.ok) {
                 const data = await res.json();
-                setHistory(data.history);
+                if (data && Array.isArray(data.history)) {
+                    setHistory(data.history);
+                } else if (Array.isArray(data)) {
+                    setHistory(data);
+                }
             }
         } catch (e) {
             console.error("Failed to fetch history");
