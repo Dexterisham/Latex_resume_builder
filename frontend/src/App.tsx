@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Experience {
     id: string;
@@ -100,12 +101,11 @@ function App() {
 
     const addLog = (msg: string) => setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
 
-    const fetchProfile = async () => {
-        try {
-            const res = await fetch(`${API_URL}/profile`);
-            if (res.ok) {
-                const data = await res.json();
-                // Ensure all fields exist
+    const fetchProfile = () => {
+        const saved = localStorage.getItem('resume_profile');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
                 setProfileData({
                     personal_info: data.personal_info || { name: '', email: '', phone: '', linkedin: '', github: '' },
                     skills: data.skills || [],
@@ -113,10 +113,9 @@ function App() {
                     projects: data.projects || [],
                     achievements_story: data.achievements_story || []
                 });
+            } catch (e) {
+                console.error("Failed to parse saved profile", e);
             }
-        } catch (e) {
-            console.error("Failed to fetch profile", e);
-            addLog("Error fetching profile. Is backend running?");
         }
     };
 
@@ -166,15 +165,11 @@ function App() {
         }
     };
 
-    const handleSaveProfile = async () => {
+    const handleSaveProfile = () => {
         try {
-            await fetch(`${API_URL}/profile`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(profileData)
-            });
-            alert('Profile saved!');
-            addLog("Profile updated successfully.");
+            localStorage.setItem('resume_profile', JSON.stringify(profileData));
+            alert('Profile saved to browser storage!');
+            addLog("Profile updated in local storage.");
         } catch (e) {
             alert('Failed to save profile');
         }
@@ -295,7 +290,8 @@ function App() {
                     template_name: selectedTemplate,
                     custom_name: customName,
                     instructions: aiInstructions,
-                    model: selectedModel
+                    model: selectedModel,
+                    profile_data: profileData // Send client-side profile data
                 })
             });
 
@@ -682,6 +678,36 @@ function App() {
                     </div>
                 )}
             </main>
+
+            {/* Backend Wake-up Tip Toast */}
+            <AnimatePresence>
+                {backendStatus === 'sleeping' && (
+                    <motion.div 
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-lg"
+                    >
+                        <div className="bg-neo-blue border-4 border-black p-6 shadow-neo-brutal flex flex-col md:flex-row items-center gap-4">
+                            <div className="bg-white border-4 border-black w-12 h-12 flex items-center justify-center text-2xl animate-spin-slow shrink-0">
+                                🔌
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-black text-white uppercase text-lg leading-tight">Backend is waking up!</p>
+                                <p className="font-bold text-white text-sm mt-1">
+                                    Since we're on a free plan, the server needs a minute. While you wait, why not head to the <button onClick={() => setActiveTab('profile')} className="underline bg-white text-black px-1 hover:bg-neo-pink transition-colors">Master Profile</button> tab to fill out your resume data?
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setBackendStatus('checking')} 
+                                className="bg-neo-pink border-2 border-black p-1 hover:bg-white transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
