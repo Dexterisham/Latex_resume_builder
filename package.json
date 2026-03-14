@@ -1,7 +1,15 @@
 {
   "name": "resume-builder-backend",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "dev.bat",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm run start --prefix backend"
+  },
   "dependencies": {
     "@google/genai": "^1.40.0",
     "dotenv": "^16.4.0"

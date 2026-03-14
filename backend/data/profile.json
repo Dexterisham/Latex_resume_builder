@@ -101,13 +101,138 @@
       "name": "TimerApp",
       "tech": "Kotlin",
       "details": "Simple timer app in the android"
+    },
+    {
+      "id": "987747538",
+      "name": "AI_QnA",
+      "tech": "HTML",
+      "details": "Check out AI_QnA on GitHub."
+    },
+    {
+      "id": "1040895765",
+      "name": "Ai_study-planner",
+      "tech": "TypeScript",
+      "details": "its analyzes the zip files and gives a good tutoring"
+    },
+    {
+      "id": "1031620277",
+      "name": "AlarmClock_NewDisabler",
+      "tech": "Unknown",
+      "details": "Most popular open source Android Alarm Clock App"
+    },
+    {
+      "id": "967841200",
+      "name": "Bank-project",
+      "tech": "JavaScript",
+      "details": "for vercel deploy"
+    },
+    {
+      "id": "969103994",
+      "name": "Branch_LLM",
+      "tech": "JavaScript",
+      "details": "Check out Branch_LLM on GitHub."
+    },
+    {
+      "id": "1112757429",
+      "name": "Calendar_app",
+      "tech": "TypeScript",
+      "details": "A simple calendar app nothings new nothings interesting ,just a Calendar"
+    },
+    {
+      "id": "1091772113",
+      "name": "CKD-prediciton",
+      "tech": "TypeScript",
+      "details": "Check out CKD-prediciton on GitHub."
+    },
+    {
+      "id": "913181176",
+      "name": "Dexterisham",
+      "tech": "Unknown",
+      "details": "Check out Dexterisham on GitHub."
+    },
+    {
+      "id": "1057301030",
+      "name": "File-Organizer",
+      "tech": "TeX",
+      "details": "A simple yet powerful Python script to automatically organize files in any folder into categorized subfolders (e.g., Images, Documents, Videos, Music, etc.). Perfect for keeping your Downloads or any messy folder tidy with just a click!"
+    },
+    {
+      "id": "1041826552",
+      "name": "infinite-wiki",
+      "tech": "TypeScript",
+      "details": "click drag search for anything,its infinite"
+    },
+    {
+      "id": "1099758246",
+      "name": "Isham_Portfolio",
+      "tech": "JavaScript",
+      "details": "My personal portfolio website"
+    },
+    {
+      "id": "1115671718",
+      "name": "Latex_resume_builder",
+      "tech": "TypeScript",
+      "details": "This application leverages **Google Gemini AI** to rewrite and tailor your resume for specific job descriptions, while using **LaTeX** to ensure perfect, professional formatting every time. It's designed for developers, engineering managers, and anyone who wants a premium, code-backed resume solution."
+    },
+    {
+      "id": "1102220293",
+      "name": "LearningMLops",
+      "tech": "Jupyter Notebook",
+      "details": "Check out LearningMLops on GitHub."
+    },
+    {
+      "id": "1054357370",
+      "name": "peer2peer_Sharing",
+      "tech": "TypeScript",
+      "details": "Check out peer2peer_Sharing on GitHub."
+    },
+    {
+      "id": "1008297014",
+      "name": "Project_proCast",
+      "tech": "Unknown",
+      "details": "A simple Awareness project "
+    },
+    {
+      "id": "1041399870",
+      "name": "Resume_builder",
+      "tech": "TypeScript",
+      "details": "Builds resume "
+    },
+    {
+      "id": "794868576",
+      "name": "Site_Sentinel",
+      "tech": "JavaScript",
+      "details": "This Project for the edge extension allows the Users to avoid unlimited scrolling on the social media in PC"
+    },
+    {
+      "id": "1122777076",
+      "name": "ted_clone",
+      "tech": "HTML",
+      "details": "teds clone website"
+    },
+    {
+      "id": "747076513",
+      "name": "TimerApp",
+      "tech": "Kotlin",
+      "details": "Simple timer app in the android"
+    },
+    {
+      "id": "986744911",
+      "name": "Workshop-repo",
+      "tech": "CSS",
+      "details": "Check out Workshop-repo on GitHub."
     }
   ],
   "achievements_story": [
     {
-      "id": "1765620309667",
+      "id": "1770703787857",
       "title": "",
       "story": ""
+    },
+    {
+      "id": "1765620309667",
+      "title": "QR Restaurant SaaS",
+      "story": "Project Description\nThis is a multi-tenant SaaS platform designed for restaurants to manage QR-based ordering. It functions as a complete system where:\n\nFor Restaurants (Admins & Kitchen Implementation): Each restaurant is fully isolated (like an Instagram account) and can manage its own menu, track orders in real-time, and handle kitchen workflows (paid → preparing → ready).\nFor Customers: Guests can scan a QR code to browse the menu and place orders directly from their phones without needing to create an account.\nTech Stack: The project uses Vite + React for the frontend and Supabase (PostgreSQL + Auth + RLS) for the backend, relying on Row Level Security (RLS) to ensure data isolation between different restaurants.\nThe current version (MVP) includes features for authentication, menu management (with CSV import), QR code generation, a cart/ordering system, and a kitchen display system."
     }
   ]
 }

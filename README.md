@@ -67,6 +67,23 @@ This application leverages **Google Gemini AI** to rewrite and tailor your resum
    npm run dev
    ```
 
+### Root Scripts (Windows-first)
+From repository root:
+```bash
+npm run dev
+```
+Also available:
+```bash
+npm run dev:backend
+npm run dev:frontend
+npm run build
+npm run start
+```
+
+### Environment Files
+- Copy `.env.example` to `.env` in repo root for backend values.
+- Optional: copy `frontend/.env.example` to `frontend/.env` if you need a custom frontend API URL.
+
 ## 📖 User Guide
 
 ### 1. Set Up Your Master Profile

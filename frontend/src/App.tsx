@@ -45,6 +45,7 @@ function App() {
         achievements_story: []
     });
     const [jobDescription, setJobDescription] = useState('');
+    const [aiInstructions, setAiInstructions] = useState('');
     const [customName, setCustomName] = useState('');
     const [githubUsername, setGithubUsername] = useState('Dexterisham');
     const [generationStatus, setGenerationStatus] = useState<'idle' | 'loading' | 'success' | 'partial_success' | 'error'>('idle');
@@ -52,16 +53,38 @@ function App() {
     const [generatedTex, setGeneratedTex] = useState('');
     const [templates, setTemplates] = useState<string[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState('');
+    const [availableModels, setAvailableModels] = useState<string[]>([]);
+    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
     const [logs, setLogs] = useState<string[]>([]);
     const [history, setHistory] = useState<any[]>([]);
 
-    const API_URL = 'http://localhost:8000';
+    const API_URL = (import.meta.env.VITE_API_URL as string | undefined)
+        || (import.meta.env.DEV ? 'http://localhost:8000' : '');
 
     useEffect(() => {
         fetchProfile();
         fetchTemplates();
         fetchHistory();
+        fetchModels();
     }, []);
+
+    const fetchModels = async () => {
+        try {
+            const res = await fetch(`${API_URL}/models`);
+            if (res.ok) {
+                const data = await res.json();
+                setAvailableModels(data.models);
+                if (data.models.length > 0) {
+                    // Keep default if it exists in list, otherwise take first
+                    if (!data.models.includes(selectedModel)) {
+                        setSelectedModel(data.models[0]);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Failed to fetch models", e);
+        }
+    };
 
     const addLog = (msg: string) => setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
 
@@ -200,11 +223,17 @@ function App() {
                     details: repo.description || `Check out ${repo.name} on GitHub.`
                 }));
 
-                // Filter out duplicates based on name or ID if needed, or just append
-                // Here we just append, user can clean up
                 setProfileData(prev => ({
                     ...prev,
-                    projects: [...prev.projects, ...newProjects]
+                    projects: [...prev.projects, ...newProjects].filter((project, index, list) => {
+                        const idKey = project.id?.toLowerCase?.() || '';
+                        const nameKey = project.name?.toLowerCase?.() || '';
+                        return index === list.findIndex((candidate) => {
+                            const candidateId = candidate.id?.toLowerCase?.() || '';
+                            const candidateName = candidate.name?.toLowerCase?.() || '';
+                            return (idKey && idKey === candidateId) || (nameKey && nameKey === candidateName);
+                        });
+                    })
                 }));
                 addLog(`✅ Fetched ${newProjects.length} repos from GitHub.`);
             } else {
@@ -231,7 +260,9 @@ function App() {
                 body: JSON.stringify({
                     job_description: jobDescription,
                     template_name: selectedTemplate,
-                    custom_name: customName
+                    custom_name: customName,
+                    instructions: aiInstructions,
+                    model: selectedModel
                 })
             });
 
@@ -260,124 +291,127 @@ function App() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
-            <header className="bg-indigo-600 text-white p-6 shadow-md">
-                <div className="max-w-6xl mx-auto flex justify-between items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">AI Resume Builder</h1>
-                        <p className="text-indigo-200 text-sm">Tailor your CV with Gemini & LaTeX</p>
+        <div className="min-h-screen bg-neo-bg text-neo-text font-sans">
+            <header className="bg-neo-yellow border-b-4 border-neo-border p-6 shadow-neo-brutal mb-8 relative z-10">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="text-center md:text-left">
+                        <h1 className="text-4xl font-extrabold tracking-tight uppercase">AI Resume Builder</h1>
+                        <p className="font-bold text-sm mt-1 bg-white inline-block px-2 border border-neo-border shadow-neo-focus">Tailor your CV with Gemini & LaTeX</p>
                     </div>
-                    <div className="flex space-x-2 bg-indigo-700 p-1 rounded-lg">
-                        <button onClick={() => setActiveTab('generate')} className={`px-4 py-2 rounded-md transition duration-200 ${activeTab === 'generate' ? 'bg-white text-indigo-700 font-semibold shadow-sm' : 'text-indigo-200 hover:text-white'}`}>Generate</button>
-                        <button onClick={() => setActiveTab('history')} className={`px-4 py-2 rounded-md transition duration-200 ${activeTab === 'history' ? 'bg-white text-indigo-700 font-semibold shadow-sm' : 'text-indigo-200 hover:text-white'}`}>History</button>
-                        <button onClick={() => setActiveTab('profile')} className={`px-4 py-2 rounded-md transition duration-200 ${activeTab === 'profile' ? 'bg-white text-indigo-700 font-semibold shadow-sm' : 'text-indigo-200 hover:text-white'}`}>Master Profile</button>
+                    <div className="flex flex-wrap justify-center space-x-2 bg-white border-2 border-neo-border p-1 shadow-neo">
+                        <button onClick={() => setActiveTab('generate')} className={`px-5 py-2 font-bold transition-all duration-200 border-2 ${activeTab === 'generate' ? 'bg-neo-pink border-neo-border shadow-neo translate-x-[2px] translate-y-[2px]' : 'bg-white border-transparent hover:bg-gray-100'}`}>Generate</button>
+                        <button onClick={() => setActiveTab('history')} className={`px-5 py-2 font-bold transition-all duration-200 border-2 ${activeTab === 'history' ? 'bg-neo-pink border-neo-border shadow-neo translate-x-[2px] translate-y-[2px]' : 'bg-white border-transparent hover:bg-gray-100'}`}>History</button>
+                        <button onClick={() => setActiveTab('profile')} className={`px-5 py-2 font-bold transition-all duration-200 border-2 ${activeTab === 'profile' ? 'bg-neo-pink border-neo-border shadow-neo translate-x-[2px] translate-y-[2px]' : 'bg-white border-transparent hover:bg-gray-100'}`}>Master Profile</button>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto p-6">
+            <main className="max-w-6xl mx-auto p-4 md:p-6 mb-12">
                 {activeTab === 'profile' && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in space-y-8">
-                        <div className="flex justify-between items-center border-b pb-4">
-                            <h2 className="text-2xl font-bold text-gray-800">Master Profile</h2>
-                            <button onClick={handleSaveProfile} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-sm transition">Save All Changes</button>
+                    <div className="neo-card p-6 md:p-8 animate-fade-in space-y-10 relative">
+                        {/* Decorative background element behind card */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-neo-blue border-l-4 border-b-4 border-neo-border -z-10 -m-4"></div>
+                        
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b-4 border-neo-border pb-6 gap-4">
+                            <h2 className="text-3xl font-extrabold uppercase tracking-wide">Master Profile</h2>
+                            <button onClick={handleSaveProfile} className="neo-btn bg-neo-green text-white px-8 py-3 text-lg">Save All Changes</button>
                         </div>
 
                         {/* Personal Info */}
-                        <section>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">1</span> Personal Info</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input placeholder="Full Name" className="p-3 border rounded-lg" value={profileData.personal_info.name} onChange={e => handlePersonalInfoChange('name', e.target.value)} />
-                                <input placeholder="Email" className="p-3 border rounded-lg" value={profileData.personal_info.email} onChange={e => handlePersonalInfoChange('email', e.target.value)} />
-                                <input placeholder="Phone" className="p-3 border rounded-lg" value={profileData.personal_info.phone} onChange={e => handlePersonalInfoChange('phone', e.target.value)} />
-                                <input placeholder="LinkedIn URL" className="p-3 border rounded-lg" value={profileData.personal_info.linkedin} onChange={e => handlePersonalInfoChange('linkedin', e.target.value)} />
-                                <input placeholder="GitHub URL" className="p-3 border rounded-lg" value={profileData.personal_info.github} onChange={e => handlePersonalInfoChange('github', e.target.value)} />
+                        <section className="bg-gray-50 border-2 border-neo-border p-6 shadow-neo">
+                            <h3 className="text-xl font-bold mb-6 flex items-center uppercase"><span className="bg-neo-pink border-2 border-neo-border shadow-neo-focus w-10 h-10 flex items-center justify-center mr-3 text-lg font-black">1</span> Personal Info</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <input placeholder="Full Name" className="neo-input p-4 font-medium" value={profileData.personal_info.name} onChange={e => handlePersonalInfoChange('name', e.target.value)} />
+                                <input placeholder="Email" className="neo-input p-4 font-medium" value={profileData.personal_info.email} onChange={e => handlePersonalInfoChange('email', e.target.value)} />
+                                <input placeholder="Phone" className="neo-input p-4 font-medium" value={profileData.personal_info.phone} onChange={e => handlePersonalInfoChange('phone', e.target.value)} />
+                                <input placeholder="LinkedIn URL" className="neo-input p-4 font-medium" value={profileData.personal_info.linkedin} onChange={e => handlePersonalInfoChange('linkedin', e.target.value)} />
+                                <input placeholder="GitHub URL" className="neo-input p-4 font-medium" value={profileData.personal_info.github} onChange={e => handlePersonalInfoChange('github', e.target.value)} />
                             </div>
                         </section>
 
                         {/* Skills */}
-                        <section>
-                            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center"><span className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">2</span> Skills</h3>
-                            <div className="flex gap-2 mb-3">
-                                <input id="skillInput" placeholder="Add a skill (e.g. React)..." className="p-2 border rounded-lg flex-1" onKeyDown={(e) => { if (e.key === 'Enter') { handleSkillAdd(e.currentTarget.value); e.currentTarget.value = ''; } }} />
-                                <button onClick={() => { const el = document.getElementById('skillInput') as HTMLInputElement; handleSkillAdd(el.value); el.value = ''; }} className="bg-gray-200 hover:bg-gray-300 px-4 rounded-lg font-medium text-gray-700">Add</button>
+                        <section className="bg-gray-50 border-2 border-neo-border p-6 shadow-neo">
+                            <h3 className="text-xl font-bold mb-6 flex items-center uppercase"><span className="bg-neo-blue border-2 border-neo-border shadow-neo-focus w-10 h-10 flex items-center justify-center mr-3 text-lg font-black">2</span> Skills</h3>
+                            <div className="flex gap-3 mb-5">
+                                <input id="skillInput" placeholder="Add a skill (e.g. React)..." className="neo-input p-3 flex-1 text-lg" onKeyDown={(e) => { if (e.key === 'Enter') { handleSkillAdd(e.currentTarget.value); e.currentTarget.value = ''; } }} />
+                                <button onClick={() => { const el = document.getElementById('skillInput') as HTMLInputElement; handleSkillAdd(el.value); el.value = ''; }} className="neo-btn bg-neo-yellow px-6 text-lg">ADD</button>
                             </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-3">
                                 {profileData.skills.map(skill => (
-                                    <span key={skill} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                                    <span key={skill} className="neo-badge bg-white px-3 py-2 flex items-center text-sm">
                                         {skill}
-                                        <button onClick={() => handleSkillRemove(skill)} className="ml-2 text-indigo-400 hover:text-indigo-900">×</button>
+                                        <button onClick={() => handleSkillRemove(skill)} className="ml-3 font-bold hover:text-red-600 bg-red-100 px-2 py-0.5 border border-neo-border transition-colors">X</button>
                                     </span>
                                 ))}
                             </div>
                         </section>
 
                         {/* Experience */}
-                        <section>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-700 flex items-center"><span className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">3</span> Experience</h3>
-                                <button onClick={addExperience} className="text-indigo-600 hover:bg-indigo-50 px-3 py-1 rounded-md text-sm font-medium">+ Add Position</button>
+                        <section className="bg-gray-50 border-2 border-neo-border p-6 shadow-neo">
+                            <div className="flex justify-between items-center mb-6 border-b-2 border-neo-border pb-4">
+                                <h3 className="text-xl font-bold flex items-center uppercase"><span className="bg-neo-yellow border-2 border-neo-border shadow-neo-focus w-10 h-10 flex items-center justify-center mr-3 text-lg font-black">3</span> Experience</h3>
+                                <button onClick={addExperience} className="neo-btn bg-white px-4 py-2 text-sm">+ Add Position</button>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 {profileData.experience.map(exp => (
-                                    <div key={exp.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 relative group">
-                                        <button onClick={() => removeExperience(exp.id)} className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">Remove</button>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                                            <input placeholder="Company" className="p-2 border rounded" value={exp.company} onChange={e => handleExperienceChange(exp.id, 'company', e.target.value)} />
-                                            <input placeholder="Role" className="p-2 border rounded" value={exp.role} onChange={e => handleExperienceChange(exp.id, 'role', e.target.value)} />
-                                            <input placeholder="Duration (e.g. 2020 - Present)" className="p-2 border rounded" value={exp.duration} onChange={e => handleExperienceChange(exp.id, 'duration', e.target.value)} />
+                                    <div key={exp.id} className="neo-card p-5 bg-white relative group transition-transform hover:-translate-y-1 hover:shadow-neo-brutal">
+                                        <button onClick={() => removeExperience(exp.id)} className="absolute -top-3 -right-3 neo-btn bg-neo-pink text-black w-8 h-8 rounded-full flex items-center justify-center font-black">X</button>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                            <input placeholder="Company" className="neo-input p-3 font-bold" value={exp.company} onChange={e => handleExperienceChange(exp.id, 'company', e.target.value)} />
+                                            <input placeholder="Role" className="neo-input p-3 font-bold" value={exp.role} onChange={e => handleExperienceChange(exp.id, 'role', e.target.value)} />
+                                            <input placeholder="Duration (e.g. 2020 - Present)" className="neo-input p-3 font-bold" value={exp.duration} onChange={e => handleExperienceChange(exp.id, 'duration', e.target.value)} />
                                         </div>
-                                        <textarea placeholder="Description / Key responsibilities..." className="w-full p-2 border rounded h-24 text-sm" value={exp.description} onChange={e => handleExperienceChange(exp.id, 'description', e.target.value)} />
+                                        <textarea placeholder="Description / Key responsibilities..." className="w-full neo-input p-4 h-32 font-medium resize-y" value={exp.description} onChange={e => handleExperienceChange(exp.id, 'description', e.target.value)} />
                                     </div>
                                 ))}
                             </div>
                         </section>
 
                         {/* Projects */}
-                        <section>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-700 flex items-center"><span className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">4</span> Projects</h3>
-                                <button onClick={addProject} className="text-indigo-600 hover:bg-indigo-50 px-3 py-1 rounded-md text-sm font-medium">+ Add Project</button>
+                        <section className="bg-gray-50 border-2 border-neo-border p-6 shadow-neo">
+                            <div className="flex justify-between items-center mb-6 border-b-2 border-neo-border pb-4">
+                                <h3 className="text-xl font-bold flex items-center uppercase"><span className="bg-neo-green border-2 border-neo-border text-white shadow-neo-focus w-10 h-10 flex items-center justify-center mr-3 text-lg font-black">4</span> Projects</h3>
+                                <button onClick={addProject} className="neo-btn bg-white px-4 py-2 text-sm">+ Add Project</button>
                             </div>
 
-                            <div className="bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 mb-4 flex items-center gap-3">
-                                <span className="text-sm font-medium text-gray-600">Import from GitHub:</span>
+                            <div className="bg-neo-blue p-5 border-2 border-neo-border shadow-neo mb-6 flex flex-col md:flex-row items-center gap-4">
+                                <span className="font-bold text-black uppercase tracking-wider">Import from GitHub:</span>
                                 <input
-                                    className="p-2 border rounded text-sm w-48"
+                                    className="neo-input p-3 flex-1 font-bold bg-white"
                                     placeholder="Username"
                                     value={githubUsername}
                                     onChange={(e) => setGithubUsername(e.target.value)}
                                 />
-                                <button onClick={fetchGithubRepos} className="bg-gray-800 text-white px-3 py-1.5 rounded text-sm hover:bg-black transition">Fetch Repos</button>
+                                <button onClick={fetchGithubRepos} className="neo-btn bg-white text-black px-6 py-3 uppercase">Fetch Repos</button>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 {profileData.projects.map(proj => (
-                                    <div key={proj.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 relative group">
-                                        <button onClick={() => removeProject(proj.id)} className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">Remove</button>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                            <input placeholder="Project Name" className="p-2 border rounded" value={proj.name} onChange={e => handleProjectChange(proj.id, 'name', e.target.value)} />
-                                            <input placeholder="Tech Stack (e.g. React, Node)" className="p-2 border rounded" value={proj.tech} onChange={e => handleProjectChange(proj.id, 'tech', e.target.value)} />
+                                    <div key={proj.id} className="neo-card p-5 bg-white relative group transition-transform hover:-translate-y-1 hover:shadow-neo-brutal">
+                                        <button onClick={() => removeProject(proj.id)} className="absolute -top-3 -right-3 neo-btn bg-neo-pink text-black w-8 h-8 rounded-full flex items-center justify-center font-black">X</button>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <input placeholder="Project Name" className="neo-input p-3 font-bold text-lg" value={proj.name} onChange={e => handleProjectChange(proj.id, 'name', e.target.value)} />
+                                            <input placeholder="Tech Stack (e.g. React, Node)" className="neo-input p-3 font-bold text-neo-pink" value={proj.tech} onChange={e => handleProjectChange(proj.id, 'tech', e.target.value)} />
                                         </div>
-                                        <textarea placeholder="Details / Impact..." className="w-full p-2 border rounded h-20 text-sm" value={proj.details} onChange={e => handleProjectChange(proj.id, 'details', e.target.value)} />
+                                        <textarea placeholder="Details / Impact..." className="w-full neo-input p-4 h-24 font-medium resize-y" value={proj.details} onChange={e => handleProjectChange(proj.id, 'details', e.target.value)} />
                                     </div>
                                 ))}
                             </div>
                         </section>
 
                         {/* Stories / Achievements */}
-                        <section>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-700 flex items-center"><span className="bg-indigo-100 text-indigo-700 rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">5</span> Story-based Achievements</h3>
-                                <button onClick={addStory} className="text-indigo-600 hover:bg-indigo-50 px-3 py-1 rounded-md text-sm font-medium">+ Add Story</button>
+                        <section className="bg-gray-50 border-2 border-neo-border p-6 shadow-neo">
+                            <div className="flex justify-between items-center mb-4 border-b-2 border-neo-border pb-4">
+                                <h3 className="text-xl font-bold flex items-center uppercase"><span className="bg-neo-pink border-2 border-neo-border shadow-neo-focus w-10 h-10 flex items-center justify-center mr-3 text-lg font-black">5</span> Story-based Achievements</h3>
+                                <button onClick={addStory} className="neo-btn bg-white px-4 py-2 text-sm">+ Add Story</button>
                             </div>
-                            <p className="text-sm text-gray-500 mb-3">Add specific stories or achievements given in a narrative format. The AI will strictly follow these facts to tailor your resume.</p>
-                            <div className="space-y-4">
+                            <p className="font-bold bg-white border-2 border-neo-border p-3 shadow-neo-focus mb-6 inline-block">Add specific stories or achievements given in a narrative format. The AI will strictly follow these facts to tailor your resume.</p>
+                            <div className="space-y-6">
                                 {profileData.achievements_story.map(story => (
-                                    <div key={story.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 relative group">
-                                        <button onClick={() => removeStory(story.id)} className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">Remove</button>
-                                        <input placeholder="Story Title (e.g. Database Migration)" className="w-full p-2 border rounded mb-2 font-medium" value={story.title} onChange={e => handleStoryChange(story.id, 'title', e.target.value)} />
-                                        <textarea placeholder="Tell the story: What was the challenge? What did you do? What was the result?" className="w-full p-2 border rounded h-32 text-sm" value={story.story} onChange={e => handleStoryChange(story.id, 'story', e.target.value)} />
+                                    <div key={story.id} className="neo-card p-5 bg-white relative group transition-transform hover:-translate-y-1 hover:shadow-neo-brutal">
+                                        <button onClick={() => removeStory(story.id)} className="absolute -top-3 -right-3 neo-btn bg-neo-pink text-black w-8 h-8 rounded-full flex items-center justify-center font-black">X</button>
+                                        <input placeholder="Story Title (e.g. Database Migration)" className="w-full neo-input p-4 mb-4 font-bold text-lg" value={story.title} onChange={e => handleStoryChange(story.id, 'title', e.target.value)} />
+                                        <textarea placeholder="Tell the story: What was the challenge? What did you do? What was the result?" className="w-full neo-input p-4 h-40 font-medium resize-y" value={story.story} onChange={e => handleStoryChange(story.id, 'story', e.target.value)} />
                                     </div>
                                 ))}
                             </div>
@@ -386,47 +420,49 @@ function App() {
                 )}
 
                 {activeTab === 'history' && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-gray-700">Generation History</h2>
-                            <button onClick={fetchHistory} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Refresh</button>
+                    <div className="neo-card p-6 md:p-8 animate-fade-in relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-neo-yellow border-l-4 border-b-4 border-neo-border -z-10 -m-4"></div>
+                        
+                        <div className="flex justify-between items-center mb-8 border-b-4 border-neo-border pb-4">
+                            <h2 className="text-3xl font-extrabold uppercase bg-neo-pink inline-block px-3 py-1 border-2 border-neo-border shadow-neo">Generation History</h2>
+                            <button onClick={fetchHistory} className="neo-btn bg-white px-4 py-2 font-bold shadow-neo hover:shadow-neo-brutal">REFRESH</button>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50 text-gray-700 font-semibold uppercase tracking-wider">
+                        <div className="overflow-x-auto border-4 border-neo-border shadow-neo-brutal bg-white">
+                            <table className="w-full text-left font-medium">
+                                <thead className="bg-neo-blue text-black font-black uppercase tracking-wider border-b-4 border-neo-border">
                                     <tr>
-                                        <th className="p-4 border-b">Name</th>
-                                        <th className="p-4 border-b">Date</th>
-                                        <th className="p-4 border-b">Status</th>
-                                        <th className="p-4 border-b">Actions</th>
+                                        <th className="p-4 border-r-4 border-neo-border">Name</th>
+                                        <th className="p-4 border-r-4 border-neo-border">Date</th>
+                                        <th className="p-4 border-r-4 border-neo-border">Status</th>
+                                        <th className="p-4">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y-4 divide-neo-border">
                                     {history.map((record) => (
-                                        <tr key={record.id} className="hover:bg-gray-50 transition">
-                                            <td className="p-4 font-medium text-gray-800">{record.name}</td>
-                                            <td className="p-4">{new Date(record.timestamp).toLocaleString()}</td>
-                                            <td className="p-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${record.status === 'success' ? 'bg-green-100 text-green-700' : record.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                        <tr key={record.id} className="hover:bg-neo-bg transition-colors">
+                                            <td className="p-4 font-bold border-r-4 border-neo-border">{record.name}</td>
+                                            <td className="p-4 border-r-4 border-neo-border">{new Date(record.timestamp).toLocaleString()}</td>
+                                            <td className="p-4 border-r-4 border-neo-border">
+                                                <span className={`px-3 py-1 border-2 border-neo-border shadow-neo-focus font-black uppercase text-sm ${record.status === 'success' ? 'bg-neo-green text-white' : record.status === 'failed' ? 'bg-neo-pink text-black' : 'bg-neo-yellow text-black'}`}>
                                                     {record.status}
                                                 </span>
                                             </td>
-                                            <td className="p-4 space-x-2">
+                                            <td className="p-4 space-x-3">
                                                 {record.pdf_file && (
-                                                    <a href={`${API_URL}/download/${record.pdf_file}`} target="_blank" className="text-indigo-600 hover:underline">Download PDF</a>
+                                                    <a href={`${API_URL}/download/${record.pdf_file}`} target="_blank" className="font-bold underline decoration-4 decoration-neo-green hover:bg-neo-green hover:text-white transition-all px-1">PDF</a>
                                                 )}
                                                 {record.tex_file && (
-                                                    <a href={`${API_URL}/download/${record.tex_file}`} target="_blank" className="text-blue-600 hover:underline">Download TeX</a>
+                                                    <a href={`${API_URL}/download/${record.tex_file}`} target="_blank" className="font-bold underline decoration-4 decoration-neo-blue hover:bg-neo-blue hover:text-white transition-all px-1">TeX</a>
                                                 )}
                                                 {record.status === 'failed' && (
-                                                    <span className="text-gray-400 italic">Check Logs</span>
+                                                    <span className="font-bold text-neo-pink bg-black px-2 py-1 uppercase text-xs">Check Logs</span>
                                                 )}
                                             </td>
                                         </tr>
                                     ))}
                                     {history.length === 0 && (
                                         <tr>
-                                            <td colSpan={4} className="p-8 text-center text-gray-400">No history yet.</td>
+                                            <td colSpan={4} className="p-8 text-center font-bold text-xl uppercase bg-gray-100">No history yet. Get building!</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -436,56 +472,80 @@ function App() {
                 )}
 
                 {activeTab === 'generate' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-                        <div className="lg:col-span-2 space-y-6">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <h2 className="text-lg font-bold text-gray-700 mb-4">1. Job Description</h2>
-                                <textarea className="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="Paste JD..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in relative">
+                        {/* Decorative background element */}
+                        <div className="hidden lg:block absolute -top-4 -left-4 w-full h-full bg-neo-pink border-4 border-neo-border -z-10 opacity-20 pointer-events-none"></div>
+
+                        <div className="lg:col-span-2 space-y-8">
+                            <div className="neo-card p-6 md:p-8">
+                                <h2 className="text-2xl font-black uppercase mb-4 tracking-tight"><span className="bg-neo-yellow px-2 border-2 border-neo-border shadow-neo-focus mr-2">1</span> Job Description</h2>
+                                <textarea className="w-full h-48 neo-input p-4 resize-y text-lg" placeholder="Paste JD..." value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} />
                             </div>
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                                <h2 className="text-lg font-bold text-gray-700 mb-4">2. Configuration</h2>
-                                <div className="space-y-4">
+                            <div className="neo-card p-6 md:p-8">
+                                <h2 className="text-2xl font-black uppercase mb-4 tracking-tight"><span className="bg-neo-blue px-2 border-2 border-neo-border shadow-neo-focus mr-2 text-white">2</span> Configuration</h2>
+                                <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Resume Name (Optional)</label>
-                                        <input type="text" className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Frontend Dev - Google" value={customName} onChange={(e) => setCustomName(e.target.value)} />
+                                        <label className="block text-lg font-bold mb-2">Resume Name (Optional)</label>
+                                        <input type="text" className="w-full neo-input p-3 font-medium" placeholder="e.g. Frontend Dev - Google" value={customName} onChange={(e) => setCustomName(e.target.value)} />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Select Template</label>
-                                        <select className="w-full p-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none" value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)}>
+                                        <label htmlFor="templateSelect" className="block text-lg font-bold mb-2">Select Template</label>
+                                        <select id="templateSelect" className="w-full neo-input p-3 font-medium bg-white cursor-pointer" value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)}>
                                             {templates.map(t => <option key={t} value={t}>{t}</option>)}
                                         </select>
                                     </div>
-                                    <button onClick={handleGenerate} disabled={generationStatus === 'loading' || !jobDescription} className={`w-full py-3 rounded-lg font-bold text-white shadow-md transition transform active:scale-95 ${generationStatus === 'loading' || !jobDescription ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700'}`}>
-                                        {generationStatus === 'loading' ? 'Generating...' : 'Generate Resume'}
-                                    </button>
+                                    <div>
+                                        <label htmlFor="modelSelect" className="block text-lg font-bold mb-2">AI Model</label>
+                                        <select id="modelSelect" className="w-full neo-input p-3 font-medium bg-white cursor-pointer" value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+                                            {availableModels.length > 0 ? (
+                                                availableModels.map(m => <option key={m} value={m}>{m}</option>)
+                                            ) : (
+                                                <option value="gemini-2.5-flash">gemini-2.5-flash (Default)</option>
+                                            )}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <div className="neo-card p-6 md:p-8">
+                                <h2 className="text-2xl font-black uppercase mb-4 tracking-tight"><span className="bg-neo-green px-2 border-2 border-neo-border shadow-neo-focus mr-2 text-white">3</span> AI Instructions <span className="text-sm bg-black text-white px-2 py-1 ml-2 align-middle">Optional</span></h2>
+                                <textarea
+                                    className="w-full h-32 neo-input p-4 resize-y font-medium"
+                                    placeholder="e.g. Focus on my leadership experience, make it fit on one page, or highlight my React skills..."
+                                    value={aiInstructions}
+                                    onChange={(e) => setAiInstructions(e.target.value)}
+                                />
+                            </div>
+                            
+                            <button onClick={handleGenerate} disabled={generationStatus === 'loading' || !jobDescription} className={`w-full py-5 text-2xl uppercase neo-btn ${generationStatus === 'loading' || !jobDescription ? 'bg-gray-300' : 'bg-neo-pink hover:bg-white'} mt-4`}>
+                                {generationStatus === 'loading' ? 'GENERATING...' : 'GENERATE RESUME'}
+                            </button>
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col">
-                                <h2 className="text-lg font-bold text-gray-700 mb-4">3. Status & Results</h2>
+                        <div className="space-y-8">
+                            <div className="neo-card p-6 md:p-8 h-full flex flex-col bg-neo-yellow">
+                                <h2 className="text-2xl font-black uppercase mb-4 tracking-tight border-b-4 border-black pb-2">Status & Results</h2>
 
-                                <div className="flex-1 bg-gray-900 rounded-lg p-4 mb-4 overflow-y-auto font-mono text-xs text-green-400 h-64 border border-gray-800">
-                                    {logs.length === 0 && <span className="text-gray-500 italic">Ready...</span>}
-                                    {logs.map((log, i) => <div key={i} className="mb-1">{log}</div>)}
+                                <div className="flex-1 bg-black border-4 border-neo-border shadow-neo-focus rounded-none p-4 mb-6 overflow-y-auto font-mono text-sm text-neo-green h-64 lg:h-auto">
+                                    {logs.length === 0 && <span className="text-gray-500 italic">Terminal ready...</span>}
+                                    {logs.map((log, i) => <div key={i} className="mb-2 border-b border-gray-800 pb-1">{log}</div>)}
                                 </div>
 
                                 {generationStatus === 'success' && generatedFile && (
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center mb-4">
-                                        <h3 className="text-green-800 font-bold mb-2">Success!</h3>
-                                        <a href={`${API_URL}/download/${generatedFile}`} target="_blank" className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-medium">Download PDF</a>
+                                    <div className="bg-white border-4 border-neo-border shadow-neo-brutal p-6 text-center mb-6 transform rotate-1">
+                                        <h3 className="text-2xl font-black uppercase mb-4">Success!</h3>
+                                        <a href={`${API_URL}/download/${generatedFile}`} target="_blank" className="neo-btn bg-neo-green text-white block w-full py-3 text-xl uppercase">DOWNLOAD PDF</a>
                                     </div>
                                 )}
 
                                 {(generationStatus === 'success' || generationStatus === 'partial_success') && generatedTex && (
-                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h3 className="text-yellow-800 font-bold">LaTeX Source</h3>
-                                            <button onClick={() => navigator.clipboard.writeText(generatedTex)} className="text-xs text-yellow-700 underline hover:text-yellow-900">Copy</button>
+                                    <div className="bg-white border-4 border-neo-border shadow-neo p-4">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <h3 className="font-black uppercase">LaTeX Source</h3>
+                                            <button onClick={() => navigator.clipboard.writeText(generatedTex)} className="neo-btn bg-neo-blue text-white px-3 py-1 text-xs">COPY</button>
                                         </div>
-                                        <textarea readOnly className="w-full h-32 p-2 text-xs font-mono border border-yellow-300 rounded bg-white text-gray-600" value={generatedTex} />
+                                        <textarea readOnly title="LaTeX Source Code" className="w-full h-32 neo-input p-3 text-xs font-mono bg-gray-50" value={generatedTex} />
                                     </div>
                                 )}
                             </div>

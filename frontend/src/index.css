@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-neo-bg text-neo-text font-sans selection:bg-neo-pink selection:text-black;
+  }
+}
+
+@layer components {
+  /* Utility for standard neobrutalist buttons/cards */
+  .neo-btn {
+    @apply font-bold border-2 border-neo-border bg-white shadow-neo transition-all duration-200 active:translate-x-1 active:translate-y-1 active:shadow-neo-focus hover:-translate-y-0.5 hover:shadow-neo-brutal disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-neo;
+  }
+
+  .neo-input {
+    @apply border-2 border-neo-border bg-white shadow-neo-focus focus:outline-none focus:ring-2 focus:ring-neo-pink focus:shadow-neo transition-all duration-200;
+  }
+
+  .neo-card {
+    @apply border-2 border-neo-border bg-white shadow-neo-xl;
+  }
+  
+  .neo-badge {
+    @apply border-2 border-neo-border font-bold text-xs uppercase tracking-wider shadow-neo-focus;
+  }
+}

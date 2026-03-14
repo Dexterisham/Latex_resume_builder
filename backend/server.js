@@ -3,13 +3,17 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const { generateResumeContent } = require('./services/llm');
+const { generateResumeContent, getAvailableModels } = require('./services/llm');
 const { compilePdf } = require('./services/pdf');
 
 const app = express();
-const PORT = 8000;
+const PORT = Number(process.env.PORT) || 8000;
 
-app.use(cors());
+const allowedOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : null;
+
+app.use(cors(allowedOrigins ? { origin: allowedOrigins } : undefined));
 app.use(express.json());
 
 // Paths
@@ -39,6 +43,16 @@ const saveHistory = (record) => {
 
 const sanitizeFilename = (name) => {
     return name.replace(/[^a-z0-9_\-\s]/gi, '').replace(/\s+/g, '_');
+};
+
+const ensureUniqueFilename = (dir, baseName, ext) => {
+    let candidate = `${baseName}${ext}`;
+    let suffix = 1;
+    while (fs.existsSync(path.join(dir, candidate))) {
+        candidate = `${baseName}_${suffix}${ext}`;
+        suffix += 1;
+    }
+    return candidate;
 };
 
 const formatProfileForPrompt = (data) => {
@@ -77,6 +91,15 @@ const formatProfileForPrompt = (data) => {
 
 app.get('/', (req, res) => {
     res.json({ message: "Resume Builder API (Node.js) is running" });
+});
+
+app.get('/healthz', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+app.get('/models', async (req, res) => {
+    const models = await getAvailableModels();
+    res.json({ models });
 });
 
 app.get('/profile', (req, res) => {
@@ -120,7 +143,26 @@ app.get('/history', (req, res) => {
 
 app.post('/generate', async (req, res) => {
     console.log("\n📝 New Resume Generation Request");
-    const { job_description, template_name, custom_name } = req.body;
+    const { job_description, template_name, custom_name, instructions, model } = req.body || {};
+
+    if (typeof job_description !== 'string' || !job_description.trim()) {
+        return res.status(400).json({ detail: "job_description is required." });
+    }
+    if (job_description.length > 50000) {
+        return res.status(400).json({ detail: "job_description is too long (max 50000 chars)." });
+    }
+    if (template_name && typeof template_name !== 'string') {
+        return res.status(400).json({ detail: "template_name must be a string." });
+    }
+    if (custom_name && typeof custom_name !== 'string') {
+        return res.status(400).json({ detail: "custom_name must be a string." });
+    }
+    if (instructions && typeof instructions !== 'string') {
+        return res.status(400).json({ detail: "instructions must be a string." });
+    }
+    if (model && typeof model !== 'string') {
+        return res.status(400).json({ detail: "model must be a string." });
+    }
 
     // 1. Read Profile
     if (!fs.existsSync(PROFILE_PATH)) {
@@ -147,7 +189,7 @@ app.post('/generate', async (req, res) => {
     }
 
     // 3. AI Generation (Requesting Full LaTeX)
-    const generatedTex = await generateResumeContent(profileContent, job_description, templateStyle);
+    const generatedTex = await generateResumeContent(profileContent, job_description, templateStyle, instructions, model);
     if (!generatedTex) {
         return res.status(500).json({ detail: "Failed to generate content from AI." });
     }
@@ -161,7 +203,7 @@ app.post('/generate', async (req, res) => {
     const record = {
         id: runId,
         timestamp: new Date().toISOString(),
-        name: custom_name || job_description.substring(0, 30) + "...",
+        name: (custom_name && custom_name.trim()) || job_description.substring(0, 30) + "...",
         template: template_name,
         status: 'pending',
         tex_file: `${runId}.tex`,
@@ -178,10 +220,10 @@ app.post('/generate', async (req, res) => {
         if (custom_name && custom_name.trim().length > 0) {
             const safeName = sanitizeFilename(custom_name);
             if (safeName) {
-                const newFilename = `${safeName}.pdf`;
+                const newFilename = ensureUniqueFilename(OUTPUT_DIR, safeName, '.pdf');
                 const newPdfPath = path.join(OUTPUT_DIR, newFilename);
 
-                // Rename (overwrite if exists)
+                // Rename without clobbering existing files
                 fs.renameSync(pdfPath, newPdfPath);
                 filename = newFilename;
             }
@@ -218,7 +260,16 @@ app.post('/generate', async (req, res) => {
 });
 
 app.get('/download/:filename', (req, res) => {
-    const filePath = path.join(OUTPUT_DIR, req.params.filename);
+    const requested = path.basename(req.params.filename || '');
+    const ext = path.extname(requested).toLowerCase();
+    if (!['.pdf', '.tex'].includes(ext)) {
+        return res.status(400).json({ detail: "Only .pdf and .tex files are allowed" });
+    }
+    const baseDir = path.resolve(OUTPUT_DIR);
+    const filePath = path.resolve(baseDir, requested);
+    if (!filePath.startsWith(baseDir + path.sep) && filePath !== baseDir) {
+        return res.status(400).json({ detail: "Invalid filename" });
+    }
     if (fs.existsSync(filePath)) {
         res.download(filePath);
     } else {
