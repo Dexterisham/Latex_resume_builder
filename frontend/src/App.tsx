@@ -64,6 +64,7 @@ function App() {
     const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
     const [logs, setLogs] = useState<string[]>([]);
     const [history, setHistory] = useState<any[]>([]);
+    const [backendStatus, setBackendStatus] = useState<'checking' | 'awake' | 'sleeping' | 'error'>('checking');
 
     const API_URL = (import.meta.env.VITE_API_URL as string | undefined)
         || (import.meta.env.DEV ? 'http://localhost:8000' : '');
@@ -120,17 +121,32 @@ function App() {
     };
 
     const fetchTemplates = async () => {
+        setBackendStatus('checking');
         try {
-            const res = await fetch(`${API_URL}/templates`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s initial check
+
+            const res = await fetch(`${API_URL}/templates`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.templates) {
                     setTemplates(data.templates);
                     if (data.templates.length > 0) setSelectedTemplate(data.templates[0].id);
+                    setBackendStatus('awake');
                 }
+            } else {
+                setBackendStatus('error');
             }
         } catch (e) {
             console.error("Failed to fetch templates", e);
+            setBackendStatus('sleeping');
+            
+            // Auto-retry after 15 seconds if it was sleeping
+            setTimeout(() => {
+                fetchTemplates();
+            }, 15000);
         }
     };
 
@@ -489,7 +505,18 @@ function App() {
                 )}
 
                 {activeTab === 'generate' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in relative">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in relative mt-12">
+                        {/* Wake-up Banner */}
+                        {backendStatus === 'sleeping' && (
+                            <div className="absolute -top-12 left-0 right-0 bg-neo-blue text-white p-2 border-4 border-black font-black uppercase text-center animate-pulse z-20">
+                                🔌 Backend is waking up... This usually takes 30-60 seconds on the first load. Please wait.
+                            </div>
+                        )}
+                        {backendStatus === 'error' && (
+                            <div className="absolute -top-12 left-0 right-0 bg-neo-pink text-white p-2 border-4 border-black font-black uppercase text-center z-20">
+                                🛑 Error connecting to backend. Check VITE_API_URL.
+                            </div>
+                        )}
                         {/* Decorative background element */}
                         <div className="hidden lg:block absolute -top-4 -left-4 w-full h-full bg-neo-pink border-4 border-neo-border -z-10 opacity-20 pointer-events-none"></div>
 
